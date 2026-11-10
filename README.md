@@ -16,7 +16,7 @@ hit a problem. Typical use: scheduling social posts, reports or reminders as kan
 ## Install
 
 ```bash
-hermes skills install <login>/hermes-kanban-schedule/kanban-schedule
+hermes skills install lelek1612/hermes-kanban-schedule/kanban-schedule
 ```
 
 Then, once:
