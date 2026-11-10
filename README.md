@@ -41,6 +41,8 @@ python3 kanban_schedule.py list            # what is waiting
 python3 kanban_schedule.py tick --dry-run  # what would start now
 ```
 
+`--idempotency-key KEY` makes `add` repeatable without duplicates (an existing task is reported and left untouched).
+
 `--at` accepts `+30m`, `+2h`, `+1d`, `HH:MM` (next occurrence), `YYYY-MM-DD HH:MM` or ISO 8601.
 
 ## Choosing boards

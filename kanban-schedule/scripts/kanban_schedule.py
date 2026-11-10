@@ -26,6 +26,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -264,18 +265,24 @@ def cmd_add(args) -> int:
     for flag, val in (("--assignee", args.assignee), ("--body", args.body),
                       ("--body-file", args.body_file), ("--priority", args.priority),
                       ("--workspace", args.workspace), ("--project", args.project),
-                      ("--tenant", args.tenant), ("--max-runtime", args.max_runtime)):
+                      ("--tenant", args.tenant), ("--max-runtime", args.max_runtime),
+                      ("--idempotency-key", args.idempotency_key)):
         if val is not None:
             cmd += [flag, str(val)]
     for s in args.skill or []:
         cmd += ["--skill", s]
     for p in args.parent or []:
         cmd += ["--parent", p]
+    started = time.time()
     try:
         task = hermes_json(cmd)
     except HermesError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
+    if args.idempotency_key and (task.get("created_at") or started) < started - 5:
+        # hermes returned an existing task for this key: never re-schedule it
+        print(f"Already exists: {task['id']} (status {task.get('status')}), key {args.idempotency_key}; left untouched")
+        return 0
     reason = f"{MARKER}={due.isoformat(timespec='seconds')}"
     sched = ["kanban"] + (["--board", args.board] if args.board else []) + ["schedule", task["id"], reason]
     rc, out, err = run_hermes(sched)
@@ -345,6 +352,8 @@ def build_parser() -> argparse.ArgumentParser:
     a.add_argument("--project")
     a.add_argument("--tenant")
     a.add_argument("--max-runtime")
+    a.add_argument("--idempotency-key",
+                   help="dedup key: if a non-archived task with this key exists it is reused, not duplicated")
     a.add_argument("--skill", action="append")
     a.add_argument("--parent", action="append")
     a.set_defaults(func=cmd_add)

@@ -213,6 +213,27 @@ class Add(unittest.TestCase):
         self.assertIn("schedule", schedule)
         self.assertIn("SCHEDULED_UNTIL=2026-11-12T18:00:00+01:00", schedule)
 
+    def test_idempotency_key_passed_and_existing_task_untouched(self):
+        calls = []
+
+        def fake_json(args):
+            calls.append(list(args))
+            return {"id": "t_old", "status": "done", "created_at": 1}  # created long ago
+
+        def fake_run(args, timeout=90):
+            calls.append(list(args))
+            return 0, "", ""
+
+        out = io.StringIO()
+        with mock.patch.object(ks, "hermes_json", fake_json), \
+             mock.patch.object(ks, "run_hermes", fake_run), \
+             contextlib.redirect_stdout(out):
+            rc = ks.main(["add", "Pub", "--at", "+5m", "--idempotency-key", "pub-s06-ig"])
+        self.assertEqual(rc, 0)
+        self.assertEqual(len(calls), 1)  # created/looked up, never scheduled
+        self.assertIn("pub-s06-ig", calls[0])
+        self.assertIn("Already exists", out.getvalue())
+
     def test_add_rejects_bad_time(self):
         with contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(ks.main(["add", "x", "--at", "kiedyś"]), 2)

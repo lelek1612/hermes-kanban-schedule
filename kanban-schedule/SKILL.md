@@ -38,7 +38,7 @@ Don't use for: recurring jobs, or tasks that should wait for a human (use `kanba
 ## Quick Reference
 
 ```
-python3 SKILL_DIR/scripts/kanban_schedule.py add "Title" --at WHEN --board B --assignee P [--body ...] [--skill S] [--priority N]
+python3 SKILL_DIR/scripts/kanban_schedule.py add "Title" --at WHEN --board B --assignee P [--body ...] [--skill S] [--priority N] [--idempotency-key KEY]
 python3 SKILL_DIR/scripts/kanban_schedule.py list
 python3 SKILL_DIR/scripts/kanban_schedule.py tick [--dry-run]
 python3 SKILL_DIR/scripts/kanban_schedule.py config [--include a,b] [--exclude c] [--max-late-minutes N]
@@ -65,6 +65,8 @@ Naive times are the machine's local timezone.
 
 - Needs the gateway dispatcher; without it the task becomes `ready` but nobody picks it up.
 - Resolution is 1-2 minutes (cron cadence plus dispatcher latency).
+- `--idempotency-key KEY` makes `add` safe to repeat: if a live task with that key exists it is left
+  untouched (never re-scheduled) and `add` says `Already exists`.
 - A task with an unfinished parent goes to `todo` on release and starts when the parent completes.
 - `--max-late-minutes N` makes `tick` leave tasks more than N minutes overdue (e.g. after downtime)
   scheduled and alert once instead of starting a stale job. Default: always start.
