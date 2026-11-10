@@ -61,7 +61,7 @@ Exclude always beats include. Environment overrides: `KANBAN_SCHEDULE_INCLUDE`,
 ## Limits
 
 - Needs a running gateway (it hosts the kanban dispatcher).
-- Accuracy is about one minute.
+- Accuracy is 1-2 minutes (cron cadence plus dispatcher latency).
 - Only tasks with a `SCHEDULED_UNTIL` marker are ever released.
 
 ## Tests

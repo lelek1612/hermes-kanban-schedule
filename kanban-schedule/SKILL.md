@@ -64,7 +64,7 @@ Naive times are the machine's local timezone.
 ## Pitfalls
 
 - Needs the gateway dispatcher; without it the task becomes `ready` but nobody picks it up.
-- Resolution is about one minute plus dispatcher latency.
+- Resolution is 1-2 minutes (cron cadence plus dispatcher latency).
 - A task with an unfinished parent goes to `todo` on release and starts when the parent completes.
 - `--max-late-minutes N` makes `tick` leave tasks more than N minutes overdue (e.g. after downtime)
   scheduled and alert once instead of starting a stale job. Default: always start.
